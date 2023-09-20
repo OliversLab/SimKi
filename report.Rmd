@@ -1,0 +1,132 @@
+---
+header-includes:
+    - \usepackage{fancyhdr}
+    - \fancyfoot[CO,CE]{OSC-Group - http://www.osc-lab.de - JMU Wuerzburg - Pharmazie}
+    - \fancyfoot[LE,RO]{\thepage}
+    - \usepackage{fontspec}
+    - \setmainfont{OpenSans}
+    - \usepackage{lscape}
+    - \newcommand{\blandscape}{\begin{landscape}}
+    - \newcommand{\elandscape}{\end{landscape}}
+    
+title: "TDM Report - SimKi"
+output: 
+  pdf_document:
+    latexengine: xelatex
+df_print: paged
+date: "`r format(Sys.time(), '%d.%B %Y')`"
+
+
+---
+\setmainfont{OpenSans}
+\addtolength{\headheight}{1.0cm} 
+\pagestyle{fancyplain} 
+\rhead{\includegraphics[height=1.2cm]{./logo_rechts.jpg}} 
+\lhead{\includegraphics[height=1.2cm]{./logo_links.png}}
+\renewcommand{\headrulewidth}{0pt}
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# **Patient characteristics**
+
+Current treatment: **`r MODEL_FILES[as.numeric(input$SELECT_DRUG)]`**
+  
+Patient ID: **`r input$pat_ID`** 
+  
+Body weight: **`r input$WT`** kg 
+
+Sex: **`r input$SEX``**
+
+Age: **`r input$AGE`** years
+
+Other covariates used:
+
+``` {r tdm_cov, echo=FALSE, warning=FALSE}
+
+kable(app_data$cov_table, format = "latex")  %>%
+    kable_styling(position = "left")
+
+```
+
+
+# **Clinical Recommendation**
+
+``` {r clin_eval, echo=FALSE, warning=FALSE}
+
+for(i in 1:length(app_data$clinical_eval)) {
+  print(app_data$clinical_eval[i])
+  print("\n")
+}
+
+```
+
+## **Custom dosing**
+``` {r custom_dosing, echo=FALSE, warning=FALSE}
+
+rep_temp_custom <- app_data$custom_scheme_data
+colnames(rep_temp_custom) = c("Dose [mg]", "Interval [h]", 
+                     "Steady State Cmin [ng/mL]", 
+                     "Steady State AUC (tau) [ng/mL h]")
+kable(rep_temp_custom, 
+      format = "latex")  %>%
+    kable_styling(position = "left")
+
+```
+
+## **Other predefined schemes**
+``` {r predefined_dosing, echo=FALSE, warning=FALSE}
+
+rep_temp_custom <- app_data$scheme_data
+colnames(rep_temp_custom) = c("Dose [mg]", "Interval [h]", 
+                     "Steady State Cmin [ng/mL]", 
+                     "Steady State AUC (tau) [ng/mL h]")
+kable(rep_temp_custom, 
+      format = "latex")  %>%
+    kable_styling(position = "left")
+
+```
+
+\newpage
+
+# **Dataset used**
+
+## **Dosing data**
+``` {r tdm_dosing, echo=FALSE, warning=FALSE}
+
+tmp_rep_data <- app_data$user_data_set %>% filter(`EVID`==1)
+colnames(tmp_rep_data) = c("Date", "Time", "Dose [mg]", "Conc [ng/mL]", "Event ID")
+kable(tmp_rep_data, 
+      format = "latex")  %>%
+    kable_styling(position = "left")
+
+```
+
+## **Measured concentrations data**
+``` {r tdm_conc, echo=FALSE, warning=FALSE}
+
+tmp_rep_data <- app_data$user_data_set %>% filter(`EVID`==0)
+colnames(tmp_rep_data) = c("Date", "Time", "Dose [mg]", "Conc [ng/mL]", "Event ID")
+kable(tmp_rep_data, 
+      format = "latex")  %>%
+    kable_styling(position = "left")
+
+```
+
+
+\newpage
+\blandscape
+
+# **Simulated Plasmaconcentration from Dataset**
+
+
+```{r simulation, echo=FALSE, warning=FALSE, fig.height = 7, fig.width = 12, fig.align = "center"}
+if(!is.null(app_data$current_plot)){
+  app_data$current_plot
+}
+
+```
+
+\elandscape
