@@ -722,9 +722,12 @@ shinyServer(function(input, output, session) {
     
     event_data <- event_data %>% arrange(time, cmt)
     
+    tdm_temp_data <- event_data %>% filter(evid==0)
+    
     # in case of Cabozantinib AND steady state add 14 doses
     # and drop ss column
     # TODO remove when mrgsim supports ss=2 and lag time
+    # TODO this is BUGGY AS HELL !! the evid==0 information gets lost and is converted to evid 1 !!! --> fixed by saving the tdm_data in tdm_temp_data
     
     if ((MODEL_FILES[as.numeric(input$SELECT_DRUG)] == "Cabozantinib")& input$at_ss ){
       for(add_dose in 1:20) {
@@ -733,10 +736,9 @@ shinyServer(function(input, output, session) {
         event_data <- c(as.ev(temp), as.ev(event_data))
         event_data <- event_data %>% as.data.frame()
       }
+      event_data <- rbind(event_data, tdm_temp_data)
       event_data$ss <- 0
     }
-    
-    
 
     
     show_modal_spinner() # show the spinner
@@ -954,7 +956,7 @@ shinyServer(function(input, output, session) {
     
   })
   
-  ## is called when "delete event" button ist pressed
+  ## is called when "delete event" button is pressed
   observeEvent(input$del_ev, {
     
     # Show error message if no line selected
